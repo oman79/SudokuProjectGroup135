@@ -19,10 +19,35 @@ if __name__ == "__main__":
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 x, y = event.pos
                 temp = board.click(x, y)
-                print(temp)
                 if temp is not None:
                     board.select(temp[0],temp[1])
-                    #sketch test: board.sketch(5)
+
+            elif event.type == pygame.KEYDOWN:
+                if event.key in (pygame.K_UP, pygame.K_DOWN, pygame.K_RIGHT, pygame.K_LEFT):
+                    if board.selected_cell is None:
+                        board.select(0,0)
+                    else:
+                        temp_row = board.selected_cell.row
+                        temp_col = board.selected_cell.col
+                        if event.key == pygame.K_UP:
+                            temp_row-=1
+                        if event.key == pygame.K_DOWN:
+                            temp_row+=1
+                        if event.key == pygame.K_LEFT:
+                            temp_col-=1
+                        if event.key == pygame.K_RIGHT:
+                            temp_col+=1
+                        temp_row = max(0, min(temp_row, board_size-1))
+                        temp_col = max(0, min(temp_col, board_size-1))
+                        board.select(temp_row, temp_col)
+                if event.key == pygame.K_RETURN and (board.selected_cell is not None) and board.selected_cell.sketched_value != 0:
+                    board.place_number(board.selected_cell.sketched_value)
+
+                if (pygame.K_1 <= event.key <= pygame.K_9) and board.selected_cell is not None:
+                    num = event.key - pygame.K_0
+                    board.sketch(num)
+
+
 
         board.draw()
         pygame.display.flip()
