@@ -17,7 +17,7 @@ class Board:
     def draw(self):
         self.screen.fill("lightblue")
         for i in range(10):
-            line_width = 4 if i % 3 == 0 else 1
+            line_width = 4 if i % 3 == 0 else 2
             pygame.draw.line(self.screen, (0, 0, 0), (0, i * 60), (540, i * 60), line_width)
             pygame.draw.line(self.screen, (0, 0, 0), (i * 60, 0), (i * 60, 540), line_width)
         for row in self.cells:
@@ -41,7 +41,8 @@ class Board:
             self.selected_cell.set_cell_value(0)
 
     def sketch(self, value):
-        if self.selected_cell:
+        if self.selected_cell and self.selected_cell.original_value == 0:
+            self.selected_cell.set_cell_value(0)
             self.selected_cell.set_sketched_value(value)
 
     def place_number(self, value):
