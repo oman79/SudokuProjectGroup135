@@ -22,6 +22,7 @@ if __name__ == "__main__":
                 print(temp)
                 if temp is not None:
                     board.select(temp[0],temp[1])
+                    #sketch test: board.sketch(5)
 
         board.draw()
         pygame.display.flip()

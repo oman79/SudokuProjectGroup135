@@ -25,7 +25,7 @@ class Cell:
 
         if self.value != 0:
             text = self.font.render(str(self.value), True, (0, 0, 0))
-            self.screen.blit(text, (x + 20, y + 15))
+            self.screen.blit(text, (x + 20+3, y + 15+3))
         elif self.sketched_value != 0:
             text = self.font.render(str(self.sketched_value), True, (128, 128, 128))
             self.screen.blit(text, (x + 5, y + 5))

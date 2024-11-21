@@ -15,7 +15,7 @@ class Board:
         self.selected_cell = None
 
     def draw(self):
-        self.screen.fill("grey")
+        self.screen.fill("lightblue")
         for i in range(10):
             line_width = 4 if i % 3 == 0 else 1
             pygame.draw.line(self.screen, (0, 0, 0), (0, i * 60), (540, i * 60), line_width)
@@ -48,3 +48,18 @@ class Board:
         if self.selected_cell and self.selected_cell.value == 0:
             self.selected_cell.set_cell_value(value)
             self.selected_cell.sketched_value = 0
+
+    def reset_to_original(self):
+        pass
+
+    def is_full(self):
+        pass
+
+    def update_board(self):
+        pass
+
+    def find_empty(self):
+        pass
+
+    def check_board(self):
+        pass
