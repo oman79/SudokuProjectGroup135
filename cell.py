@@ -9,6 +9,7 @@ class Cell:
         self.screen = screen
         self.sketched_value = 0
         self.selected = False
+        self.font = pygame.font.Font(None, 40)
 
     def set_cell_value(self, value):
         self.value = value
@@ -17,15 +18,16 @@ class Cell:
         self.sketched_value = value
 
     def draw(self):
+        #making some assumptions about cell and screen resolution
         x = self.col * 60
         y = self.row * 60
-        font = pygame.font.Font(None, 40)
+
 
         if self.value != 0:
-            text = font.render(str(self.value), True, (0, 0, 0))
+            text = self.font.render(str(self.value), True, (0, 0, 0))
             self.screen.blit(text, (x + 20, y + 15))
         elif self.sketched_value != 0:
-            text = font.render(str(self.sketched_value), True, (128, 128, 128))
+            text = self.font.render(str(self.sketched_value), True, (128, 128, 128))
             self.screen.blit(text, (x + 5, y + 5))
 
         if self.selected:
