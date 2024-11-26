@@ -1,9 +1,10 @@
 import pygame
 import sys
+import board
 
 # Constants
-WINDOW_WIDTH = 600
-WINDOW_HEIGHT = 700
+WINDOW_WIDTH = 540
+WINDOW_HEIGHT = 640
 GRID_SIZE = 9
 CELL_SIZE = WINDOW_WIDTH // GRID_SIZE
 BUTTON_HEIGHT = 50
@@ -15,6 +16,7 @@ RED = (255, 0, 0)
 GRAY = (200, 200, 200)
 LIGHT_BLUE = (173, 216, 230)
 GREEN = (0, 255, 0)
+YELLOW = (255, 255, 0)
 
 # Initialize PyGame
 pygame.init()
@@ -60,6 +62,7 @@ class SudokuUI:
             for y in range(GRID_SIZE):
                 rect = pygame.Rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
                 pygame.draw.rect(screen, WHITE, rect, width=1)
+        self.board.draw()
 
         # Draw bold lines for 3x3 boxes
         for i in range(0, GRID_SIZE + 1, 3):
@@ -67,17 +70,17 @@ class SudokuUI:
             pygame.draw.line(screen, BLACK, (0, i * CELL_SIZE), (WINDOW_WIDTH, i * CELL_SIZE), width=3)
 
     def draw_buttons(self):
-        reset_button = pygame.Rect(50, WINDOW_HEIGHT - 130, 150, BUTTON_HEIGHT)
-        restart_button = pygame.Rect(225, WINDOW_HEIGHT - 130, 150, BUTTON_HEIGHT)
-        exit_button = pygame.Rect(400, WINDOW_HEIGHT - 130, 150, BUTTON_HEIGHT)
+        reset_button = pygame.Rect(25, WINDOW_HEIGHT - 80, 150, BUTTON_HEIGHT)
+        restart_button = pygame.Rect(200, WINDOW_HEIGHT - 80, 150, BUTTON_HEIGHT)
+        exit_button = pygame.Rect(375, WINDOW_HEIGHT - 80, 150, BUTTON_HEIGHT)
 
         pygame.draw.rect(screen, GREEN, reset_button)
-        pygame.draw.rect(screen, LIGHT_BLUE, restart_button)
+        pygame.draw.rect(screen, YELLOW, restart_button)
         pygame.draw.rect(screen, RED, exit_button)
 
-        screen.blit(font.render("Reset", True, BLACK), (85, WINDOW_HEIGHT - 120))
-        screen.blit(font.render("Restart", True, BLACK), (245, WINDOW_HEIGHT - 120))
-        screen.blit(font.render("Exit", True, WHITE), (440, WINDOW_HEIGHT - 120))
+        screen.blit(font.render("Reset", True, BLACK), (70, WINDOW_HEIGHT - 70))
+        screen.blit(font.render("Restart", True, BLACK), (230, WINDOW_HEIGHT - 70))
+        screen.blit(font.render("Exit", True, WHITE), (425, WINDOW_HEIGHT - 70))
 
         return reset_button, restart_button, exit_button
 
@@ -100,20 +103,53 @@ class SudokuUI:
                     if self.state == "start":
                         if easy_button.collidepoint(event.pos):
                             self.difficulty = "easy"
+                            self.board = board.Board(GRID_SIZE,GRID_SIZE,screen, self.difficulty)
                             self.state = "game"
                         elif medium_button.collidepoint(event.pos):
                             self.difficulty = "medium"
+                            self.board = board.Board(GRID_SIZE, GRID_SIZE, screen, self.difficulty)
                             self.state = "game"
                         elif hard_button.collidepoint(event.pos):
                             self.difficulty = "hard"
+                            self.board = board.Board(GRID_SIZE, GRID_SIZE, screen, self.difficulty)
                             self.state = "game"
                     elif self.state == "game":
                         if reset_button.collidepoint(event.pos):
-                            print("Reset button clicked")
+                            self.board.reset_to_original()
                         elif restart_button.collidepoint(event.pos):
                             self.state = "start"
                         elif exit_button.collidepoint(event.pos):
                             self.running = False
+
+                        x, y = event.pos
+                        temp = self.board.click(x, y)
+                        if temp is not None:
+                            self.board.select(temp[0], temp[1])
+                elif event.type == pygame.KEYDOWN:
+                    if event.key in (pygame.K_UP, pygame.K_DOWN, pygame.K_RIGHT, pygame.K_LEFT):
+                        if self.board.selected_cell is None:
+                            self.board.select(0, 0)
+                        else:
+                            temp_row = self.board.selected_cell.row
+                            temp_col = self.board.selected_cell.col
+                            if event.key == pygame.K_UP:
+                                temp_row -= 1
+                            if event.key == pygame.K_DOWN:
+                                temp_row += 1
+                            if event.key == pygame.K_LEFT:
+                                temp_col -= 1
+                            if event.key == pygame.K_RIGHT:
+                                temp_col += 1
+                            temp_row = max(0, min(temp_row, GRID_SIZE - 1))
+                            temp_col = max(0, min(temp_col, GRID_SIZE - 1))
+                            self.board.select(temp_row, temp_col)
+                    if event.key == pygame.K_RETURN and (
+                            self.board.selected_cell is not None) and self.board.selected_cell.sketched_value != 0:
+                        self.board.place_number(self.board.selected_cell.sketched_value)
+
+                    if (pygame.K_1 <= event.key <= pygame.K_9) and self.board.selected_cell is not None:
+                        num = event.key - pygame.K_0
+                        self.board.sketch(num)
 
 
 if __name__ == "__main__":

@@ -11,6 +11,7 @@ class Board:
         self.difficulty = difficulty
         removed_cells = {"easy": 30, "medium": 40, "hard": 50}
         self.board = generate_sudoku(9, removed_cells[difficulty])
+        self.board_original = [row[:] for row in self.board]
         self.cells = [[Cell(self.board[row][col], row, col, screen) for col in range(9)] for row in range(9)]
         self.selected_cell = None
 
@@ -51,16 +52,40 @@ class Board:
             self.selected_cell.sketched_value = 0
 
     def reset_to_original(self):
-        pass
+        self.cells = [[Cell(self.board_original[row][col], row, col, self.screen) for col in range(9)] for row in range(9)]
+        self.selected_cell = None
 
     def is_full(self):
-        pass
+        for row in self.board:
+            for cell in row:
+                if cell== 0:
+                    return False
+        return True
 
     def update_board(self):
-        pass
+        for i, row in enumerate(self.cells):
+            for j, col in enumerate(row):
+                self.board[i][j] = col.value
 
     def find_empty(self):
         pass
 
     def check_board(self):
-        pass
+        for row in self.board:
+            if len(row) != len(set(row)):
+                return False
+        for col in [[row[i] for row in self.board] for i in range(len(self.board[0]))]:
+            if len(col) != len(set(row)):
+                return False
+
+        for i in range(3):
+            for j in range(3):
+                current_box = [row[3 * j:3 * j + 3] for row in self.board[3 * i:3 * i + 3]]
+                temp = set()
+                for row in current_box:
+                    for num in row:
+                        if num in temp:
+                            return False
+                        else:
+                            temp.add(num)
+        return True
