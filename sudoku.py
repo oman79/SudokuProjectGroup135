@@ -42,18 +42,17 @@ class SudokuUI:
 
     def init_buttons(self):
          # Button dimensions
-        button_width = 400
-        button_height = BUTTON_HEIGHT
-        button_spacing = 20  # Space between buttons
+        button_width = 300
+        button_spacing = 30
 
-        # Center buttons vertically and horizontally
-        center_x = (WINDOW_WIDTH - button_width) // 2
-        start_y = (WINDOW_HEIGHT - (3 * button_height + 2 * button_spacing)) // 2
+        # Coordinates to center buttons
+        x = (WINDOW_WIDTH - button_width) // 2
+        y = (WINDOW_HEIGHT - (3 * BUTTON_HEIGHT + 2 * button_spacing)) // 2
 
         start_buttons = {
-            "easy": pygame.Rect(center_x, start_y, button_width, button_height),
-            "medium": pygame.Rect(center_x, start_y + button_height + button_spacing, button_width, button_height),
-            "hard": pygame.Rect(center_x, start_y + 2 * (button_height + button_spacing), button_width, button_height),
+            "easy": pygame.Rect(x, y, button_width, BUTTON_HEIGHT),
+            "medium": pygame.Rect(x, y + BUTTON_HEIGHT + button_spacing, button_width, BUTTON_HEIGHT),
+            "hard": pygame.Rect(x, y + 2 * (BUTTON_HEIGHT + button_spacing), button_width, BUTTON_HEIGHT),
         }
 
         game_buttons = {
