@@ -45,19 +45,26 @@ class Board:
         if self.selected_cell and self.selected_cell.original_value == 0:
             self.selected_cell.set_cell_value(0)
             self.selected_cell.set_sketched_value(value)
+            row = self.selected_cell.row
+            col = self.selected_cell.col
+            self.board[row][col] = 0
+
 
     def place_number(self, value):
         if self.selected_cell and self.selected_cell.value == 0:
             self.selected_cell.set_cell_value(value)
             self.selected_cell.sketched_value = 0
+            row = self.selected_cell.row
+            col = self.selected_cell.col
+            self.board[row][col] = value
 
     def reset_to_original(self):
         self.cells = [[Cell(self.board_original[row][col], row, col, self.screen) for col in range(9)] for row in range(9)]
         self.selected_cell = None
 
     def is_full(self):
-        for row in self.board:
-            for cell in row:
+        for i,row in enumerate(self.board):
+            for j, cell in enumerate(row):
                 if cell== 0:
                     return False
         return True
