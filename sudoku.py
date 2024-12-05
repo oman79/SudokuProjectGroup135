@@ -1,7 +1,7 @@
 import pygame
 import board
 import time
-
+import pygame.mixer
 
 
 # Constants
@@ -39,10 +39,21 @@ class SudokuUI:
         self.board = None
         self.selected_cell = None
         self.difficulty = None
+        self.hovered_cell = None # Adding mouse hover effect
+        self.pause_time = False # Adding pause to timer (for after winning)
+        self.total_time = 0
         self.start_time= None # adding time
 
         #generate buttons
         self.start_buttons, self.game_buttons, self.end_button = self.init_buttons()
+
+        # Sounds
+        pygame.mixer.init()
+        self.lose_sound = pygame.mixer.Sound("sounds/Lose_Sound1.wav")
+        self.win_sound = pygame.mixer.Sound("sounds/Win_Sound1.wav")
+        self.start_sound = pygame.mixer.Sound("sounds/Start_Sound1.wav")
+        pygame.mixer.music.load("sounds/Background_Audio.mp3")
+        pygame.mixer.music.play(-1)
 
     def init_buttons(self):
          # Button dimensions
@@ -93,12 +104,15 @@ class SudokuUI:
         screen.fill(LIGHT_BLUE)
         text = title_font.render("You Won!", True, BLACK)
         screen.blit(text, (WINDOW_WIDTH // 2 - text.get_width() // 2, 75))
-        ttime = time.time() - self.start_time
-        sec = int(ttime // 60)
-        min = int(ttime % 60)
+
+        if self.total_time == 0:
+            self.total_time = time.time() - self.start_time
+        sec = int(self.total_time // 60)
+        min = int(self.total_time % 60)
         timfont = pygame.font.Font(None, 24)
         time_text = timfont.render(f'Total Time: {sec:02}:{min:02}', True, BLACK) # add total gamelength time
         screen.blit(time_text, (WINDOW_WIDTH // 2 - time_text.get_width() // 2, 120))
+
         pygame.draw.rect(screen, WHITE, self.end_button)
         text_surf = font.render("Exit", True, BLACK)
         screen.blit(text_surf, (self.end_button.x + (self.end_button.width - text_surf.get_width()) // 2,
@@ -110,13 +124,14 @@ class SudokuUI:
         for x in range(GRID_SIZE):
             for y in range(GRID_SIZE):
                 rect = pygame.Rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
-                pygame.draw.rect(screen, WHITE, rect, width=1)
-        self.board.draw()
-
+                pygame.draw.rect(screen, WHITE, rect)
+                pygame.draw.rect(screen, BLACK, rect, width=1)
         # Draw bold lines for 3x3 boxes
         for i in range(0, GRID_SIZE + 1, 3):
             pygame.draw.line(screen, BLACK, (i * CELL_SIZE, 0), (i * CELL_SIZE, WINDOW_WIDTH), width=3)
             pygame.draw.line(screen, BLACK, (0, i * CELL_SIZE), (WINDOW_WIDTH, i * CELL_SIZE), width=3)
+        if self.board:
+            self.board.draw()
 
     def draw_buttons(self):
         for title, rect in self.game_buttons.items():
@@ -139,25 +154,39 @@ class SudokuUI:
         return self.game_buttons["reset"], self.game_buttons["restart"], self.game_buttons["exit"]
 
     def timer(self):
-        ttime=time.time() - self.start_time
-        sec=int(ttime//60)
-        min=int(ttime%60)
-        timfont=pygame.font.Font(None,24)
-        time_text=timfont.render(f' {sec:02}:{min:02}', True, BLACK)
-        screen.blit(time_text, (WINDOW_WIDTH//2- time_text.get_width()//2, WINDOW_HEIGHT-97))
+        if not self.pause_time:
+            ttime=time.time() - self.start_time
+            sec=int(ttime//60)
+            min=int(ttime%60)
+            timfont=pygame.font.Font(None,24)
+            time_text=timfont.render(f' {sec:02}:{min:02}', True, BLACK)
+            screen.blit(time_text, (WINDOW_WIDTH//2- time_text.get_width()//2, WINDOW_HEIGHT-97))
+
     def run(self):
         while self.running:
-            screen.fill(WHITE)
             if self.state == "start":
                 easy_button, medium_button, hard_button = self.draw_start_screen()
             elif self.state == "game":
                 self.draw_grid()
                 reset_button, restart_button, exit_button = self.draw_buttons()
-                self.timer()
+                if not self.pause_time:
+                    self.timer()
             elif self.state == "won":
+                if not self.pause_time:
+                    self.pause_time = True
+                    self.total_time = time.time() - self.start_time
                 end_button = self.draw_win_screen()
             elif self.state == "lost":
                 end_button = self.draw_lose_screen()
+
+            if self.hovered_cell and self.state == "game":
+                row, col = self.hovered_cell
+                hover_rect = pygame.Rect(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+                hover_surface = pygame.Surface((CELL_SIZE, CELL_SIZE))
+                hover_surface.set_alpha(50)
+                hover_surface.fill((0, 200, 200))
+                screen.blit(hover_surface, (col * CELL_SIZE, row * CELL_SIZE))
+                pygame.draw.rect(screen, BLACK, hover_rect, width=2)
 
             pygame.display.flip()
 
@@ -171,18 +200,28 @@ class SudokuUI:
                             self.difficulty = "easy"
                             self.board = board.Board(GRID_SIZE,GRID_SIZE,screen, self.difficulty)
                             self.state = "game"
+                            self.start_sound.play()
                             self.start_time=time.time()
                         elif medium_button.collidepoint(event.pos):
                             self.difficulty = "medium"
                             self.board = board.Board(GRID_SIZE, GRID_SIZE, screen, self.difficulty)
                             self.state = "game"
+                            self.start_sound.play()
                             self.start_time = time.time()
                         elif hard_button.collidepoint(event.pos):
                             self.difficulty = "hard"
                             self.board = board.Board(GRID_SIZE, GRID_SIZE, screen, self.difficulty)
                             self.state = "game"
+                            self.start_sound.play()
                             self.start_time = time.time()
                 elif self.state == "game":
+                    if event.type == pygame.MOUSEMOTION:
+                        x, y = event.pos
+                        row = y // CELL_SIZE
+                        col = x // CELL_SIZE
+                        if 0 <= row < GRID_SIZE and 0 <= col < GRID_SIZE:
+                            self.hovered_cell = (row,col)
+                        else: self.hovered_cell = None
                     if event.type == pygame.MOUSEBUTTONDOWN:
                         if reset_button.collidepoint(event.pos):
                             self.board.reset_to_original()
@@ -224,16 +263,24 @@ class SudokuUI:
                     if self.board is not None:
                         if self.board.is_full():
                             if self.board.check_board():
+                                self.win_sound.play()
+                                self.pause_time = True
                                 self.state = "won"
                             else:
+                                self.lose_sound.play()
+                                self.pause_time = True
                                 self.state = "lost"
                 elif self.state == "won":
                     if event.type == pygame.MOUSEBUTTONDOWN:
                         if end_button.collidepoint(event.pos):
+                            self.pause_time = False
+                            self.start_time = None
                             self.running = False
                 elif self.state == "lost":
                     if event.type == pygame.MOUSEBUTTONDOWN:
                         if end_button.collidepoint(event.pos):
+                            self.pause_time = False
+                            self.start_time = None
                             self.state = "start"
 
         self.board.update_board()
