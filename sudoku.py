@@ -39,7 +39,8 @@ class SudokuUI:
         self.board = None
         self.selected_cell = None
         self.difficulty = None
-        self.hovered_cell = None # Adding mouse hover effect
+        self.hovered_cell = None # Adding mouse hover effect to cells
+        self.hovered_button = None # Adding mouse hover effect to buttons
         self.pause_time = False # Adding pause to timer (for after winning)
         self.total_time = 0
         self.start_time= None # adding time
@@ -85,7 +86,11 @@ class SudokuUI:
         screen.blit(title_text, (WINDOW_WIDTH // 2 - title_text.get_width() // 2, 75))
 
         for title, rect in self.start_buttons.items():
-            pygame.draw.rect(screen, WHITE, rect)
+            if rect.collidepoint(pygame.mouse.get_pos()):
+                hover_rect = pygame.Rect(rect.x - 5, rect.y - 5, rect.width + 10, rect.height + 10)
+                pygame.draw.rect(screen, WHITE, hover_rect)
+            else: pygame.draw.rect(screen, WHITE, rect)
+
             text_surf = font.render(title.capitalize(), True, BLACK)
             screen.blit(text_surf, (rect.x + (rect.width - text_surf.get_width()) // 2, rect.y + (rect.height - text_surf.get_height()) // 2))
 
@@ -145,11 +150,17 @@ class SudokuUI:
                 color = RED
                 color_text = WHITE
 
-            # Draw the button
-            pygame.draw.rect(screen, color, rect)
-            text_surface = font.render(title.capitalize(), True, color_text)
-            # Draw the text on the button
-            screen.blit(text_surface, (rect.x + (rect.width - text_surface.get_width()) // 2, rect.y + (rect.height - text_surface.get_height()) // 2))
+            if self.hovered_button == title:
+                hover_rect = pygame.Rect(rect.x - 5, rect.y - 5, rect.width + 10, rect.height + 10)
+                pygame.draw.rect(screen, color, hover_rect)
+                text_surface = font.render(title.capitalize(), True, color_text)
+                screen.blit(text_surface, (hover_rect.x + (hover_rect.width - text_surface.get_width()) // 2, hover_rect.y + (hover_rect.height - text_surface.get_height()) // 2))
+            else:
+                # Draw the button
+                pygame.draw.rect(screen, color, rect)
+                text_surface = font.render(title.capitalize(), True, color_text)
+                # Draw the text on the button
+                screen.blit(text_surface, (rect.x + (rect.width - text_surface.get_width()) // 2, rect.y + (rect.height - text_surface.get_height()) // 2))
 
         return self.game_buttons["reset"], self.game_buttons["restart"], self.game_buttons["exit"]
 
@@ -222,6 +233,11 @@ class SudokuUI:
                         if 0 <= row < GRID_SIZE and 0 <= col < GRID_SIZE:
                             self.hovered_cell = (row,col)
                         else: self.hovered_cell = None
+                        self.hovered_button = None
+
+                        for title, rect in self.game_buttons.items():
+                            if rect.collidepoint(pygame.mouse.get_pos()):
+                                self.hovered_button = title
                     if event.type == pygame.MOUSEBUTTONDOWN:
                         if reset_button.collidepoint(event.pos):
                             self.board.reset_to_original()
